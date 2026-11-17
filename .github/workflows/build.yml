@@ -20,21 +20,20 @@ jobs:
         shell: bash
         run: |
           . "$IDF_PATH/export.sh"
+          PROJECT_DIR=$(dirname "$(find . -maxdepth 3 -name "CMakeLists.txt" -exec grep -l "project(" {} + | head -n 1)")
+          echo "Found ESP-IDF project at: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
           if [ -f ones.defaults ]; then
             cp ones.defaults sdkconfig.defaults.esp32s2
           fi
           idf.py set-target esp32s2
           idf.py -DBOARD_NAME=alphapi-one-s-desktop build
-
-      - name: Package firmware binaries
-        shell: bash
-        run: |
-          mkdir -p release_bins
-          cp build/xiaozhi.bin release_bins/AlphaPi-OneS-Desktop-Dark.bin || true
-          cp build/bootloader/bootloader.bin release_bins/ || true
-          cp build/partition_table/partition-table.bin release_bins/ || true
-          cp build/ota_data_initial.bin release_bins/ || true
-          cp build/assets.bin release_bins/ || true
+          mkdir -p "$GITHUB_WORKSPACE/release_bins"
+          cp build/xiaozhi.bin "$GITHUB_WORKSPACE/release_bins/AlphaPi-OneS-Desktop-Dark.bin" || true
+          cp build/bootloader/bootloader.bin "$GITHUB_WORKSPACE/release_bins/" || true
+          cp build/partition_table/partition-table.bin "$GITHUB_WORKSPACE/release_bins/" || true
+          cp build/ota_data_initial.bin "$GITHUB_WORKSPACE/release_bins/" || true
+          cp build/assets.bin "$GITHUB_WORKSPACE/release_bins/" || true
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
