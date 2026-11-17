@@ -1,0 +1,42 @@
+name: Build AlphaPi OneS Firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: espressif/idf:v5.4.1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Select AlphaPi OneS board config
+        run: |
+          if [ -f ones.defaults ]; then
+            cp ones.defaults sdkconfig.defaults.esp32s2
+          fi
+          idf.py set-target esp32s2
+
+      - name: Build firmware
+        run: idf.py build
+
+      - name: Package firmware binaries
+        run: |
+          mkdir -p release_bins
+          cp build/xiaozhi.bin release_bins/AlphaPi-OneS-Desktop-Dark.bin || true
+          cp build/bootloader/bootloader.bin release_bins/ || true
+          cp build/partition_table/partition-table.bin release_bins/ || true
+          cp build/ota_data_initial.bin release_bins/ || true
+          cp build/assets.bin release_bins/ || true
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlphaPi-OneS-ESP32S2-Firmware
+          path: release_bins/
