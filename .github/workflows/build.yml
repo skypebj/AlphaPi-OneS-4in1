@@ -16,17 +16,18 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Select AlphaPi OneS board config
+      - name: Build firmware
+        shell: bash
         run: |
+          . "$IDF_PATH/export.sh"
           if [ -f ones.defaults ]; then
             cp ones.defaults sdkconfig.defaults.esp32s2
           fi
           idf.py set-target esp32s2
-
-      - name: Build firmware
-        run: idf.py build
+          idf.py -DBOARD_NAME=alphapi-one-s-desktop build
 
       - name: Package firmware binaries
+        shell: bash
         run: |
           mkdir -p release_bins
           cp build/xiaozhi.bin release_bins/AlphaPi-OneS-Desktop-Dark.bin || true
